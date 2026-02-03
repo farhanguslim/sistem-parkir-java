@@ -14,20 +14,17 @@ build/
 *.class
 
 # ===============================
-# OS Files
+# OS / Logs
 # ===============================
 .DS_Store
 Thumbs.db
-
-# ===============================
-# Logs
-# ===============================
 *.log
 
 # ===============================
 # CONFIG SENSITIF (JANGAN KE GIT)
 # ===============================
 config/db.properties
+src/config/db.properties
 .env
 *.env
 
