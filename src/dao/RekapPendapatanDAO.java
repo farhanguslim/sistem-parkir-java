@@ -1,33 +1,35 @@
 package dao;
 
 import config.DatabaseConnection;
-import java.sql.*;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 public class RekapPendapatanDAO {
 
-    // ================= UNTUK GUI (CHART) =================
-    public int getTotalPendapatanHariIni() throws Exception {
+    public int getPendapatanHariIni() {
+        int total = 0;
 
         String sql =
-                "SELECT NVL(SUM(TOTAL_BIAYA),0) AS TOTAL " +
-                        "FROM PARKIR_KELUAR " +
-                        "WHERE TRUNC(JAM_KELUAR) = TRUNC(SYSDATE)";
+                "SELECT NVL(SUM(BIAYA), 0) AS TOTAL " +
+                        "FROM PARKIR_MASUK " +
+                        "WHERE STATUS = 'SUDAH KELUAR' " +
+                        "AND JAM_KELUAR IS NOT NULL " +
+                        "AND TRUNC(JAM_KELUAR) = TRUNC(SYSDATE)";
 
-        Statement st = DatabaseConnection.getConnection().createStatement();
-        ResultSet rs = st.executeQuery(sql);
-
-        if (rs.next()) {
-            return rs.getInt("TOTAL");
+        try (
+                Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()
+        ) {
+            if (rs.next()) {
+                total = rs.getInt("TOTAL");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        return 0;
-    }
 
-    // ================= UNTUK CONSOLE (LAMA) =================
-    public void rekapHariIni() throws Exception {
-
-        int total = getTotalPendapatanHariIni();
-
-        System.out.println("\n===== REKAP PENDAPATAN HARI INI =====");
-        System.out.println("Total Pendapatan : Rp " + total);
+        return total;
     }
 }

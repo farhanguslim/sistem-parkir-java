@@ -2,31 +2,38 @@ package dao;
 
 import config.DatabaseConnection;
 import model.User;
-import java.sql.*;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 public class UserDAO {
 
-    public User login(String username, String password) throws Exception {
+    public User login(String username, String password) {
+        String sql = """
+            SELECT username, role
+            FROM users
+            WHERE username = ? AND password = ?
+        """;
 
-        String sql =
-                "SELECT USERNAME, ROLE FROM USERS " +
-                        "WHERE USERNAME = ? AND PASSWORD = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
-        PreparedStatement ps =
-                DatabaseConnection.getConnection().prepareStatement(sql);
-        ps.setString(1, username);
-        ps.setString(2, password);
+            ps.setString(1, username);
+            ps.setString(2, password);
 
-        ResultSet rs = ps.executeQuery();
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return new User(
+                        rs.getString("username"),
+                        rs.getString("role")
+                );
+            }
 
-        if (rs.next()) {
-            return new User(
-                    rs.getString("USERNAME"),
-                    rs.getString("ROLE")
-            );
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-
-        return null;
+        return null; // login gagal
     }
 }

@@ -8,68 +8,68 @@ import java.awt.*;
 
 public class LoginFrame extends JFrame {
 
-    private JTextField txtUsername;
-    private JPasswordField txtPassword;
-    private JButton btnLogin;
+    private JTextField txtUser;
+    private JPasswordField txtPass;
+    private final UserDAO userDAO = new UserDAO();
 
     public LoginFrame() {
 
         setTitle("Login Sistem Parkir");
-        setSize(350, 200);
+        setSize(300, 180);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLayout(new GridLayout(3, 2, 10, 10));
 
-        JPanel panel = new JPanel(new GridLayout(3, 2, 10, 10));
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        add(new JLabel("Username"));
+        txtUser = new JTextField();
+        add(txtUser);
 
-        panel.add(new JLabel("Username"));
-        txtUsername = new JTextField();
-        panel.add(txtUsername);
+        add(new JLabel("Password"));
+        txtPass = new JPasswordField();
+        add(txtPass);
 
-        panel.add(new JLabel("Password"));
-        txtPassword = new JPasswordField();
-        panel.add(txtPassword);
+        JButton btnLogin = new JButton("Login");
+        add(new JLabel());
+        add(btnLogin);
 
-        btnLogin = new JButton("Login");
-        panel.add(new JLabel());
-        panel.add(btnLogin);
+        // ===== ACTION =====
+        btnLogin.addActionListener(e -> doLogin());
 
-        add(panel);
-
-        btnLogin.addActionListener(e -> login());
+        // 🔥 ENTER LANGSUNG LOGIN
+        getRootPane().setDefaultButton(btnLogin);
     }
 
-    private void login() {
-        String username = txtUsername.getText();
-        String password = new String(txtPassword.getPassword());
+    private void doLogin() {
 
-        UserDAO dao = new UserDAO();
+        String username = txtUser.getText().trim();
+        String password = new String(txtPass.getPassword());
 
-        try {
-            User user = dao.login(username, password);
-
-            if (user != null) {
-                JOptionPane.showMessageDialog(this,
-                        "Login berhasil sebagai " + user.getRole());
-
-                new MenuFrame(user).setVisible(true);
-                dispose();
-
-            } else {
-                JOptionPane.showMessageDialog(this,
-                        "Username atau Password salah",
-                        "Login Gagal",
-                        JOptionPane.ERROR_MESSAGE);
-            }
-
-        } catch (Exception e) {
+        if (username.isEmpty() || password.isEmpty()) {
             JOptionPane.showMessageDialog(this,
-                    e.getMessage(),
-                    "Error",
+                    "Username dan Password wajib diisi",
+                    "Peringatan",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        User loggedIn = userDAO.login(username, password);
+
+        if (loggedIn != null) {
+            JOptionPane.showMessageDialog(this,
+                    "Login berhasil sebagai " + loggedIn.getRole());
+
+            dispose();
+            new MenuFrame(loggedIn).setVisible(true);
+
+        } else {
+            JOptionPane.showMessageDialog(this,
+                    "Username atau Password salah",
+                    "Login Gagal",
                     JOptionPane.ERROR_MESSAGE);
         }
     }
 
+    // ===== MAIN =====
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() ->
                 new LoginFrame().setVisible(true)

@@ -4,70 +4,67 @@ import dao.ParkirKeluarDAO;
 
 import javax.swing.*;
 import java.awt.*;
+import java.sql.ResultSet;
 
 public class ParkirKeluarFrame extends JFrame {
 
     private JTextField txtPlat;
     private JLabel lblBiaya;
-    private JButton btnCek, btnKeluar;
+    private final ParkirKeluarDAO dao = new ParkirKeluarDAO();
 
     public ParkirKeluarFrame() {
-
         setTitle("Parkir Keluar");
         setSize(350, 200);
         setLocationRelativeTo(null);
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setLayout(new GridLayout(4, 2));
 
-        JPanel panel = new JPanel(new GridLayout(3,2,10,10));
-        panel.setBorder(BorderFactory.createEmptyBorder(20,20,20,20));
-
-        panel.add(new JLabel("No Plat"));
+        add(new JLabel("No Plat"));
         txtPlat = new JTextField();
-        panel.add(txtPlat);
+        add(txtPlat);
 
-        panel.add(new JLabel("Biaya"));
+        add(new JLabel("Biaya"));
         lblBiaya = new JLabel("-");
-        panel.add(lblBiaya);
+        add(lblBiaya);
 
-        btnCek = new JButton("Cek Biaya");
-        btnKeluar = new JButton("Keluar");
-        btnKeluar.setEnabled(false);
+        JButton btnCek = new JButton("Cek Biaya");
+        JButton btnKeluar = new JButton("Parkir Keluar");
 
-        panel.add(btnCek);
-        panel.add(btnKeluar);
+        add(btnCek);
+        add(btnKeluar);
 
-        add(panel);
+        // ===== CEK BIAYA =====
+        btnCek.addActionListener(e -> {
+            try {
+                String plat = txtPlat.getText().trim().toUpperCase();
+                int biaya = dao.hitungBiaya(plat);
+                lblBiaya.setText("Rp " + biaya);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage());
+            }
+        });
 
-        btnCek.addActionListener(e -> cekBiaya());
-        btnKeluar.addActionListener(e -> keluar());
-    }
+        // ===== PARKIR KELUAR + STRUK =====
+        btnKeluar.addActionListener(e -> {
+            try {
+                String plat = txtPlat.getText().trim().toUpperCase();
+                dao.parkirKeluar(plat);
 
-    private void cekBiaya() {
-        try {
-            String plat = txtPlat.getText().trim().toUpperCase();
-            ParkirKeluarDAO dao = new ParkirKeluarDAO();
-            int biaya = dao.getBiayaByNoPlat(plat);
+                ResultSet rs = dao.getStruk(plat);
+                if (rs.next()) {
+                    new StrukParkirFrame(
+                            rs.getString("NO_PLAT"),
+                            rs.getString("JENIS"),
+                            rs.getTimestamp("JAM_MASUK").toString(),
+                            rs.getTimestamp("JAM_KELUAR").toString(),
+                            rs.getInt("BIAYA")
+                    ).setVisible(true);
+                }
 
-            lblBiaya.setText("Rp " + biaya);
-            btnKeluar.setEnabled(true);
+                dispose();
 
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, e.getMessage());
-        }
-    }
-
-    private void keluar() {
-        try {
-            String plat = txtPlat.getText().trim().toUpperCase();
-            ParkirKeluarDAO dao = new ParkirKeluarDAO();
-            dao.insertByNoPlat(plat);
-
-            JOptionPane.showMessageDialog(this,
-                    "✅ Parkir keluar berhasil");
-            dispose();
-
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, e.getMessage());
-        }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage());
+            }
+        });
     }
 }

@@ -1,6 +1,5 @@
 package gui;
 
-import dao.KendaraanDAO;
 import dao.ParkirMasukDAO;
 
 import javax.swing.*;
@@ -29,12 +28,13 @@ public class ParkirMasukFrame extends JFrame {
 
         panel.add(new JLabel("Jenis Kendaraan"));
         JPanel panelRadio = new JPanel(new FlowLayout(FlowLayout.LEFT));
+
         rbMotor = new JRadioButton("Motor");
         rbMobil = new JRadioButton("Mobil");
 
-        ButtonGroup group = new ButtonGroup();
-        group.add(rbMotor);
-        group.add(rbMobil);
+        ButtonGroup bg = new ButtonGroup();
+        bg.add(rbMotor);
+        bg.add(rbMobil);
 
         panelRadio.add(rbMotor);
         panelRadio.add(rbMobil);
@@ -52,53 +52,63 @@ public class ParkirMasukFrame extends JFrame {
         // ===== ACTION =====
         btnSimpan.addActionListener(e -> simpan());
         btnBatal.addActionListener(e -> dispose());
+
+        // ENTER = SIMPAN
+        getRootPane().setDefaultButton(btnSimpan);
     }
 
     private void simpan() {
+
         String noPlat = txtPlat.getText()
                 .trim()
                 .toUpperCase()
                 .replaceAll("\\s+", " ");
 
         String jenis = null;
-        if (rbMotor.isSelected()) jenis = "Motor";
-        if (rbMobil.isSelected()) jenis = "Mobil";
+        if (rbMotor.isSelected()) {
+            jenis = "Motor";
+        } else if (rbMobil.isSelected()) {
+            jenis = "Mobil";
+        }
 
+        // ===== VALIDASI =====
         if (noPlat.isEmpty()) {
             JOptionPane.showMessageDialog(this,
-                    "No Plat wajib diisi");
+                    "No plat wajib diisi",
+                    "Peringatan",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         if (jenis == null) {
             JOptionPane.showMessageDialog(this,
-                    "Pilih jenis kendaraan");
+                    "Pilih jenis kendaraan (Motor / Mobil)",
+                    "Peringatan",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         try {
-            KendaraanDAO kendaraanDAO = new KendaraanDAO();
-            ParkirMasukDAO masukDAO = new ParkirMasukDAO();
-
-            // kalau kendaraan sudah ada → update jenis
-            if (kendaraanDAO.exists(noPlat)) {
-                kendaraanDAO.updateJenis(noPlat, jenis);
-            } else {
-                kendaraanDAO.insert(noPlat, jenis);
-            }
-
-            masukDAO.insert(noPlat);
+            ParkirMasukDAO dao = new ParkirMasukDAO();
+            dao.insert(noPlat, jenis);
 
             JOptionPane.showMessageDialog(this,
-                    "Parkir masuk berhasil");
-
-            dispose(); // tutup form
+                    "✅ Parkir masuk berhasil");
+            dispose();
 
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this,
-                    e.getMessage(),
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
+
+            if (e.getMessage().contains("Kendaraan masih berada")) {
+                JOptionPane.showMessageDialog(this,
+                        "⚠️ Kendaraan masih berada di dalam parkir",
+                        "Peringatan",
+                        JOptionPane.WARNING_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        e.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 }

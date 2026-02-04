@@ -7,44 +7,34 @@ import java.awt.*;
 
 public class ChartPendapatanFrame extends JFrame {
 
-    private int total;
+    private JLabel lblTotal;
 
     public ChartPendapatanFrame() {
-
         setTitle("Chart Pendapatan Hari Ini");
-        setSize(400, 300);
+        setSize(350, 200);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
-        try {
-            RekapPendapatanDAO dao = new RekapPendapatanDAO();
-            total = dao.getTotalPendapatanHariIni();
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, e.getMessage());
-            total = 0;
-        }
-
-        add(new ChartPanel());
+        initUI();
+        loadData();
     }
 
-    class ChartPanel extends JPanel {
+    private void initUI() {
+        setLayout(new BorderLayout());
 
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
+        JLabel title = new JLabel("Pendapatan Hari Ini", SwingConstants.CENTER);
+        title.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        add(title, BorderLayout.NORTH);
 
-            g.setFont(new Font("Arial", Font.BOLD, 14));
-            g.drawString("Pendapatan Hari Ini", 120, 30);
+        lblTotal = new JLabel("Rp 0", SwingConstants.CENTER);
+        lblTotal.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        add(lblTotal, BorderLayout.CENTER);
+    }
 
-            int barHeight = Math.min(total / 1000, 150);
+    private void loadData() {
+        RekapPendapatanDAO dao = new RekapPendapatanDAO();
+        int total = dao.getPendapatanHariIni();
 
-            g.setColor(Color.BLUE);
-            g.fillRect(150, 200 - barHeight, 100, barHeight);
-
-            g.setColor(Color.BLACK);
-            g.drawRect(150, 200 - barHeight, 100, barHeight);
-
-            g.drawString("Rp " + total, 155, 220);
-        }
+        lblTotal.setText("Rp " + total);
     }
 }

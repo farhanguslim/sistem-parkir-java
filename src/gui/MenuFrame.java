@@ -18,54 +18,59 @@ public class MenuFrame extends JFrame {
         this.user = user;
 
         setTitle("Sistem Parkir - " + user.getRole());
-        setSize(1200, 550);
+        setSize(1200, 500);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
         // ================= TABLE =================
         String[] kolom = {
-                "NO_PLAT", "JENIS", "JAM_MASUK",
-                "JAM_KELUAR", "BIAYA", "STATUS"
+                "NO_PLAT",
+                "JENIS",
+                "JAM_MASUK",
+                "JAM_KELUAR",
+                "BIAYA",
+                "STATUS"
         };
 
         model = new DefaultTableModel(kolom, 0);
         table = new JTable(model);
-        add(new JScrollPane(table), BorderLayout.CENTER);
+        JScrollPane scrollPane = new JScrollPane(table);
 
-        // ================= PANEL BUTTON =================
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-
-        // ===== TOMBOL REFRESH (INI YANG KAMU MAU) =====
+        // ================= BUTTON =================
         JButton btnRefresh = new JButton("Refresh");
-        btnRefresh.setToolTipText("Refresh Data Parkir");
-
-        // ===== TOMBOL LAIN =====
         JButton btnMasuk = new JButton("Parkir Masuk");
         JButton btnKeluar = new JButton("Parkir Keluar");
-        JButton btnUpdate = new JButton("Update Jenis");
-        JButton btnRekap = new JButton("Rekap Pendapatan");
-        JButton btnExport = new JButton("Export CSV");
-        JButton btnBulk = new JButton("Bulk Delete");
-        JButton btnHapusPlat = new JButton("Hapus Per Plat");
         JButton btnLogout = new JButton("Logout");
 
-        // ===== TAMBAH KE PANEL =====
-        panel.add(btnRefresh);   // ⬅️ REFRESH BENAR-BENAR ADA
-        panel.add(btnMasuk);
-        panel.add(btnKeluar);
+        // ===== ADMIN BUTTON =====
+        JButton btnUpdateJenis = new JButton("Update Jenis");
+        JButton btnHapusPerPlat = new JButton("Hapus Per Plat");
+        JButton btnBulkDelete = new JButton("Bulk Delete");
+        JButton btnExportCSV = new JButton("Export CSV");
+        JButton btnExportTanggal = new JButton("Export Rekap Per Hari");
+        JButton btnChart = new JButton("Chart Pendapatan");
 
-        // ===== ADMIN ONLY =====
+        JPanel panelButton = new JPanel(new FlowLayout(FlowLayout.LEFT));
+
+        // ================= PETUGAS =================
+        panelButton.add(btnRefresh);
+        panelButton.add(btnMasuk);
+        panelButton.add(btnKeluar);
+
+        // ================= ADMIN =================
         if (user.getRole().equalsIgnoreCase("ADMIN")) {
-            panel.add(btnUpdate);
-            panel.add(btnRekap);
-            panel.add(btnExport);
-            panel.add(btnBulk);
-            panel.add(btnHapusPlat);
+            panelButton.add(btnUpdateJenis);
+            panelButton.add(btnHapusPerPlat);
+            panelButton.add(btnBulkDelete);
+            panelButton.add(btnExportCSV);
+            panelButton.add(btnExportTanggal);
+            panelButton.add(btnChart);
         }
 
-        panel.add(btnLogout);
+        panelButton.add(btnLogout);
 
-        add(panel, BorderLayout.SOUTH);
+        add(scrollPane, BorderLayout.CENTER);
+        add(panelButton, BorderLayout.SOUTH);
 
         // ================= ACTION =================
         btnRefresh.addActionListener(e -> loadData());
@@ -78,36 +83,49 @@ public class MenuFrame extends JFrame {
                 new ParkirKeluarFrame().setVisible(true)
         );
 
-        btnUpdate.addActionListener(e ->
+        btnUpdateJenis.addActionListener(e ->
                 new UpdateJenisFrame().setVisible(true)
         );
 
-        btnRekap.addActionListener(e ->
-                new ChartPendapatanFrame().setVisible(true)
-        );
-
-        btnExport.addActionListener(e ->
-                new ExportCSVFrame().setVisible(true)
-        );
-
-        btnBulk.addActionListener(e ->
-                new BulkDeleteFrame().setVisible(true)
-        );
-
-        btnHapusPlat.addActionListener(e ->
+        btnHapusPerPlat.addActionListener(e ->
                 new HapusParkirFrame().setVisible(true)
         );
 
+        btnBulkDelete.addActionListener(e ->
+                new BulkDeleteFrame().setVisible(true)
+        );
+
+        btnExportCSV.addActionListener(e ->
+                new ExportCSVFrame().setVisible(true)
+        );
+
+        btnExportTanggal.addActionListener(e ->
+                new ExportRekapTanggalFrame().setVisible(true)
+        );
+
+        btnChart.addActionListener(e ->
+                new ChartPendapatanFrame().setVisible(true)
+        );
+
         btnLogout.addActionListener(e -> {
-            dispose();
-            new LoginFrame().setVisible(true);
+            int ok = JOptionPane.showConfirmDialog(
+                    this,
+                    "Yakin ingin logout?",
+                    "Konfirmasi",
+                    JOptionPane.YES_NO_OPTION
+            );
+
+            if (ok == JOptionPane.YES_OPTION) {
+                dispose();
+                new LoginFrame().setVisible(true);
+            }
         });
 
-        // LOAD DATA AWAL
+        // LOAD DATA PERTAMA
         loadData();
     }
 
-    // ================= LOAD DATA PARKIR =================
+    // ================= LOAD DATA =================
     private void loadData() {
         model.setRowCount(0);
 
@@ -127,12 +145,10 @@ public class MenuFrame extends JFrame {
             }
 
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(
-                    this,
+            JOptionPane.showMessageDialog(this,
                     e.getMessage(),
                     "Error",
-                    JOptionPane.ERROR_MESSAGE
-            );
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 }

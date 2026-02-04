@@ -10,7 +10,7 @@ public class UpdateJenisFrame extends JFrame {
     public UpdateJenisFrame() {
 
         setTitle("Update Jenis Kendaraan");
-        setSize(350, 200);
+        setSize(300, 200);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
@@ -24,7 +24,7 @@ public class UpdateJenisFrame extends JFrame {
 
         JButton btnUpdate = new JButton("Update");
 
-        setLayout(new GridLayout(5,1,10,10));
+        setLayout(new GridLayout(5, 1, 10, 10));
         add(new JLabel("No Plat"));
         add(txtPlat);
         add(rbMotor);
@@ -32,24 +32,27 @@ public class UpdateJenisFrame extends JFrame {
         add(btnUpdate);
 
         btnUpdate.addActionListener(e -> {
-            String plat = txtPlat.getText().trim().toUpperCase();
-            String jenis = rbMotor.isSelected() ? "Motor" :
-                    rbMobil.isSelected() ? "Mobil" : null;
-
-            if (plat.isEmpty() || jenis == null) {
-                JOptionPane.showMessageDialog(this, "Lengkapi data");
-                return;
-            }
-
             try {
-                KendaraanDAO dao = new KendaraanDAO();
-                dao.updateJenis(plat, jenis);
+                String jenis = rbMotor.isSelected() ? "Motor" : "Mobil";
+                new KendaraanDAO()
+                        .updateJenis(txtPlat.getText().trim().toUpperCase(), jenis);
 
-                JOptionPane.showMessageDialog(this, "Jenis berhasil diupdate");
+                JOptionPane.showMessageDialog(this, "Berhasil diupdate");
                 dispose();
+
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, ex.getMessage());
             }
         });
+
+        // ENTER = UPDATE
+        getRootPane().setDefaultButton(btnUpdate);
+
+        // ESC = CLOSE
+        getRootPane().registerKeyboardAction(
+                e -> dispose(),
+                KeyStroke.getKeyStroke("ESCAPE"),
+                JComponent.WHEN_IN_FOCUSED_WINDOW
+        );
     }
 }
